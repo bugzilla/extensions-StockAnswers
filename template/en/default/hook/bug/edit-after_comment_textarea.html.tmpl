@@ -1,0 +1,97 @@
+  [% IF bug.user.canedit %]
+  <script type="text/javascript">
+  <!--
+
+  /* Adds the reply text to the `comment' textarea */
+  function addTextToComment(text, bug_status, resolution, crasher) {
+    /* pre id="comment_name_N" */
+    /* make sure we split on all newlines -- IE or Moz use \r and \n
+     * respectively */
+    text = text.split(/\r|\n/);
+
+    var replytext = "";
+    for (var i=0; i < text.length; i++) {
+        replytext += text[i] + "\n"; 
+    }
+
+    if (resolution && resolution != '') {
+      bug_status = 'RESOLVED';
+    }
+
+    if (bug_status && bug_status != '') {
+      document.getElementsByName('bug_status')[0].value = bug_status;
+      bz_fireEvent(document.getElementsByName('bug_status')[0], 'change');
+    }
+
+    if (resolution && resolution != '') {
+      document.getElementsByName('resolution')[0].value = resolution;
+      bz_fireEvent(document.getElementsByName('resolution')[0], 'change');
+    }
+
+    if (crasher == "1") {
+      document.getElementsByName('priority')[0].value = 'High';
+      document.getElementsByName('bug_severity')[0].value = 'critical';
+    }
+
+    var textarea = document.getElementById('comment');
+    textarea.value += replytext;
+
+    if (resolution && resolution == "DUPLICATE") {
+      document.getElementsByName('dup_id')[0].focus();
+    } else {
+      textarea.focus();
+    }
+
+    return false;
+  }
+
+  /* Outputs a link to call addTextToComment(); used to reduce HTML output */
+  function addStockLink(text, shorttext, knob, resolve, crasher) {
+    document.write('[<a href="[% self_url FILTER html %]#add_comment" onclick="return addTextToComment(\'' +
+        text.replace(/'/g, "\\'").replace(/\n/g, "\\n") + "','" + knob + "','" + resolve + "','" + crasher + "');\">" + shorttext + '<' + '/a>] ');
+  }
+
+  //-->
+
+
+  </script>
+  [% IF bug.bug_status == 'NEEDINFO' %]
+  <div style="display: block" id="stocklinks" name="stocklinks">
+    <script type="text/javascript">
+      addStockLink("Closing this [% terms.bug %] report as no further information has been provided. Please feel free to reopen this [% terms.bug %] if you can provide the information asked for.\nThanks!", 'incomplete', '', 'INCOMPLETE', '')
+      addStockLink("Thanks for the [% terms.bug %] report. This particular [% terms.bug %] has already been reported into our [% terms.bug %] tracking system, but please feel free to report any further [% terms.bugs %] you find.", 'duplicate', 'duplicate', '', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis particular [% terms.bug %] has already been reported into our [% terms.bug %] tracking system, but the maintainers need more information to fix the [% terms.bug %]. Could you please answer the questions in the other report in order to help the developers?", 'dupe+needinfo', 'duplicate', '', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis particular [% terms.bug %] has already been reported into our [% terms.bug %] tracking system, but we are happy to tell you that the problem has already been fixed. It should be solved in the next software version. You may want to check for a software upgrade.", 'dupe+fixed', 'duplicate', '', '');
+    </script>
+  </div>
+  [% ELSIF bug.isopened %]
+  <div style="display: block" id="stocklinks" name="stocklinks">
+    <script type="text/javascript">
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nWithout a stack trace from the crash it's very hard to determine what caused it.\nCan you get us a stack trace? Please see http://live.gnome.org/GettingTraces for more information on how to do so. Thanks in advance!", 'need_stacktrace', 'NEEDINFO', '', '1');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis [% terms.bug %] report isn't very useful because it doesn't describe the [% terms.bug %] well. If you have time and can still reproduce the [% terms.bug %], please read http://bugzilla.gnome.org/bug-HOWTO.html and add a more useful description to this [% terms.bug %].", 'bad_description', 'NEEDINFO', '', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis [% terms.bug %] report isn't very useful because it doesn't describe the [% terms.bug %] well. If you have time and can still reproduce the [% terms.bug %], please read http://bugzilla.gnome.org/bug-HOWTO.html and add a description of how to reproduce this [% terms.bug %].\n\nYou'll also need to add a stack trace; please see http://live.gnome.org/GettingTraces for more information about how to do so. Thanks in advance!", 'bad_description+crasher', 'NEEDINFO', '', '1');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nUnfortunately, that stack trace is missing some elements that will help a lot to solve the problem, so it will be hard for the developers to fix that crash. Can you get us a stack trace with debugging symbols? Please see http://live.gnome.org/GettingTraces for more information on how to do so and reopen this [% terms.bug %] or report a new one. Thanks in advance!", 'bad_stacktrace', '', 'INCOMPLETE', '1');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nHowever, you are using a version that is too old and not supported anymore. GNOME developers are no longer working on that version, so unfortunately there will not be any [% terms.bug %] fixes for the version that you use.\n\nBy upgrading to a newer version of GNOME you could receive [% terms.bug %] fixes and new functionality. You may need to upgrade your Linux distribution to obtain a newer version of GNOME.\nPlease feel free to reopen this [% terms.bug %] if the problem still occurs with a newer version of GNOME.", 'obsolete', '', 'OBSOLETE', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis trace indicates that Mozilla (which was being used by the program) was responsible for the crash, or alternatively that the program was compiled against a different version of Mozilla. Make sure the program was built against the most recent mozilla, and if you can duplicate the crash in mozilla itself, report the [% terms.bug %] to https://bugzilla.mozilla.org/", 'mozilla', '','NOTGNOME', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nHowever, this application does not track its [% terms.bugs %] in the GNOME [% terms.Bugzilla %]. We kindly ask you to report the [% terms.bug %] to the application authors. For a selective list of other [% terms.bug %] tracking systems please consult http://live.gnome.org/Bugsquad/TriageGuide/NonGnome.\n\nIf the affected third party application has a [% terms.bug %] tracking system you should investigate whether a [% terms.bug %] for the reported issue is already filed in this system. If it has not been filed yet please do so. Also ensure that both [% terms.bug %] reports contain a link to each other.\nThanks in advance!", 'not_gnome', '', 'NOTGNOME', '');
+      addStockLink("Thanks for the [% terms.bug %] report. This particular [% terms.bug %] has already been reported into our [% terms.bug %] tracking system, but please feel free to report any further [% terms.bugs %] you find.", 'duplicate', '', 'DUPLICATE', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis particular [% terms.bug %] has already been reported into our [% terms.bug %] tracking system, but the maintainers need more information to fix the [% terms.bug %]. Could you please answer the questions in the other report in order to help the developers?", 'dupe+needinfo', '', 'DUPLICATE', '');
+      addStockLink("Thanks for taking the time to report this [% terms.bug %].\nThis particular [% terms.bug %] has already been reported into our [% terms.bug %] tracking system, but we are happy to tell you that the problem has already been fixed. It should be solved in the next software version. You may want to check for a software upgrade.", 'dupe+fixed', '', 'DUPLICATE', '');
+      addStockLink("This problem has been fixed in our software repository. The fix will go into the next software release. Thank you for your [% terms.bug %] report.", 'fixed_in_stable', '', 'FIXED', '');
+      addStockLink("This problem has been fixed in the development version. The fix will be available in the next major software release. Thank you for your [% terms.bug %] report.", 'fixed_in_head', '', 'FIXED', '');
+
+    [% IF bug.product == 'evince' %]
+      addStockLink("Thanks for the [% terms.bug %] report. Unfortunately it lacks some information that may help us in finding the cause of the [% terms.bug %]. Can you, if possible, attach the file causing the crash? Also this may be a Poppler [% terms.Bug %] (the backend used by Evince to render PDF), could you please supply the poppler version and type? You can find it in the Help->About menu in Evince.", 'crash-evince', 'NEEDINFO', '', '1');
+    [% ELSIF bug.product == 'metacity' %]
+      addStockLink("Thanks for the [% terms.bug %] report.  Unfortunately it lacks some information that may help us in finding the cause of the [% terms.bug %].  Can you provide a verbose debugging log?  To do so:\n\n  1. Reduce your desktop to as few windows as possible to reproduce the [% terms.bug %]\n  2. Run METACITY_VERBOSE=1 METACITY_USE_LOGFILE=1 metacity --replace\n  3. On stdout metacity will print the name of the logfile\n  4. Reproduce the [% terms.bug %] as quickly as possible\n  5. Kill the metacity you started above to stop the logfile from growing any longer\n  6. Attach the logfile here", 'metacity-verbose-log', 'NEEDINFO', '', '');
+    [% ELSIF bug.product == 'epiphany' || bug.product == 'galeon' %]
+      addStockLink("Thanks for the [% terms.bug %] report.  However, the stack trace shows this to be a crash in the closed-source flash-plugin, which does not track its [% terms.bugs %] in [% terms.Bugzilla %].  We kindly ask you to report the [% terms.bug %] to the application authors.", 'crash-flash-plugin', '','NOTGNOME', '');
+    [% END %]
+    [% IF bug.product == 'epiphany' || bug.product == 'yelp' || bug.product == 'devhelp' %]
+      addStockLink("Thanks for taking the time to report this [% terms.bug %]. This trace indicates that WebKit (which was being used by the program) might be responsible for the crash. Make sure the program was built against a recent version of WebKit, and if you can still duplicate the crash, report the [% terms.bug %] to http://bugs.webkit.org/ including a link to this [% terms.bug %] report and noting the WebKit version/revision number. When reporting the WebKit [% terms.bug %], be sure to include '[GTK]' in the summary and use the 'gtk' keyword.", 'webkit', '','NOTGNOME', '');
+    [% END %]
+    </script>
+    </div>
+  [% END %]
+  [% END %]
+
