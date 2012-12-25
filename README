@@ -1,0 +1,14 @@
+
+Stock answers
+
+Ideally this should be in a table and provide the following fields
+ - shortname
+ - Appear when bug_status is (specific bug_status; blank means: any open status)
+ - Appear when product is
+ - Change bug_status to
+ - Change resolution to
+ - Change priority to
+ - Change bug_severity to
+ - Add text to comment
+
+
